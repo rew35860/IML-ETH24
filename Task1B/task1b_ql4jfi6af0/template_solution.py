@@ -8,6 +8,8 @@ import pandas as pd
 # any additional imports)
 # import ...
 
+from sklearn.linear_model import RidgeCV
+
 def transform_data(X):
     """
     This function transforms the 5 input features of matrix X (x_i denoting the i-th component in a given row of X)
@@ -28,6 +30,12 @@ def transform_data(X):
     """
     X_input = np.zeros((700, 21))
     # TODO: Enter your code here
+    X_input[:, 0:5] = X
+    X_input[:, 5:10] = X**2
+    X_input[:, 10:15] = np.exp(X)
+    X_input[:, 15:20] = np.cos(X)
+    X_input[:, 20] = 1
+
     assert X_input.shape == (700, 21)
     return X_input
 
@@ -49,6 +57,10 @@ def fit(X, y):
     weights = np.zeros((21,))
     X_input = transform_data(X)
     # TODO: Enter your code here
+    clf = RidgeCV(alphas=(0.001, 0.1, 1.0, 10.0, 6), fit_intercept=False, cv=5) 
+    clf.fit(X_input, y)
+    weights = clf.coef_
+
     assert weights.shape == (21,)
     return weights
 
