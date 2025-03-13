@@ -8,8 +8,10 @@ from sklearn.model_selection import KFold
 # Add any additional imports here (however, the task is solvable without using 
 # any additional imports)
 # import ...
+from sklearn.linear_model import Ridge 
+from sklearn.metrics import mean_squared_error
 
-def fit(X, y, lam):
+def predict(X, y, lam, X_test):
     """
     This function receives training data points, then fits the ridge regression on this data
     with regularization hyperparameter lambda. The weights w of the fitted ridge regression
@@ -23,15 +25,20 @@ def fit(X, y, lam):
 
     Returns
     ----------
-    w: array of floats: dim = (13,), optimal parameters of ridge regression
+    predict: array of floats: dim = (15,), predicted labels for test data points
     """
     weights = np.zeros((13,))
     # TODO: Enter your code here
-    assert weights.shape == (13,)
-    return weights
+    clf = Ridge(alpha=lam)
+    clf.fit(X, y)
+
+    predict = clf.predict(X_test)
+
+    assert predict.shape == (15,)
+    return predict
 
 
-def calculate_RMSE(w, X, y):
+def calculate_RMSE(w, y):
     """This function takes test data points (X and y), and computes the empirical RMSE of 
     predicting y from X using a linear model with weights w. 
 
@@ -47,6 +54,7 @@ def calculate_RMSE(w, X, y):
     """
     rmse = 0
     # TODO: Enter your code here
+    rmse = np.sqrt(mean_squared_error(y, w))
     assert np.isscalar(rmse)
     return rmse
 
@@ -71,6 +79,14 @@ def average_LR_RMSE(X, y, lambdas, n_folds):
 
     # TODO: Enter your code here. Hint: Use functions 'fit' and 'calculate_RMSE' with training and test data
     # and fill all entries in the matrix 'RMSE_mat'
+    
+    kf = KFold(n_splits=n_folds, random_state=0, shuffle=True)
+    for n, (train, test) in enumerate(kf.split(X)):
+        X_train, X_test, y_train, y_test = X[train], X[test], y[train], y[test]
+        for idx, lam in enumerate(lambdas):
+            w = predict(X_train, y_train, lam, X_test)
+            RMSE_mat[n, idx] = calculate_RMSE(w, y_test)
+        
 
     avg_RMSE = np.mean(RMSE_mat, axis=0)
     assert avg_RMSE.shape == (5,)
